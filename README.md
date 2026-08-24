@@ -28,3 +28,23 @@ chmod +x install-vscode.sh
 
 Requires `wget`, `gpg`, and `apt`. Prompts for `sudo` only for the steps that
 need it (installing the apt key and running `apt install`).
+
+## PATH
+
+The script does not modify `PATH` itself, and doesn't need to. The `code`
+`.deb` package's own `postinst` maintainer script handles it:
+
+```bash
+rm -f /usr/bin/code
+ln -s /usr/share/code/bin/code /usr/bin/code
+```
+
+It installs the real binary under `/usr/share/code/bin/code` and symlinks it
+to `/usr/bin/code`, which is already on every user's default `PATH` on
+Debian/Ubuntu-family systems (including derivatives like Pop!_OS). So once
+`apt install -y code` finishes, the `code` command works immediately in any
+new terminal — no `~/.bashrc` or `/etc/environment` edits required.
+
+The package also registers `code` with `update-alternatives` as a low-priority
+candidate for `/usr/bin/editor` and installs a `.desktop` launcher entry.
+Neither of those affects `PATH` either.
