@@ -99,8 +99,20 @@ echo "[STEP] Adding VS Code apt repository (sudo)"
 echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" \
   | sudo tee /etc/apt/sources.list.d/vscode.list > /dev/null
 
-echo "[STEP] Updating apt and installing 'code' (sudo)"
-sudo apt update
+echo "[STEP] Updating apt for the VS Code repo only (sudo)"
+# Scoped to just vscode.list so an unrelated broken/misconfigured repo
+# elsewhere in /etc/apt/sources.list.d/ (e.g. a bad third-party PPA) can't
+# block this install. Falls back to a full 'apt update' if that ever fails.
+if ! sudo apt-get update \
+      -o Dir::Etc::sourcelist="sources.list.d/vscode.list" \
+      -o Dir::Etc::sourceparts="-" \
+      -o APT::Get::List-Cleanup="0"; then
+  echo "[WARN] Scoped update failed, falling back to a full 'apt update'" >&2
+  echo "[WARN] (this may fail loudly if another repo on this system is broken -- that's unrelated to VS Code)" >&2
+  sudo apt update
+fi
+
+echo "[STEP] Installing 'code' (sudo)"
 sudo apt install -y code
 
 echo "== Done =="
