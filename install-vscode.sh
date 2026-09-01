@@ -43,7 +43,12 @@ echo "== Installing Visual Studio Code =="
 
 if command -v code >/dev/null 2>&1; then
   echo "[INFO] 'code' is already installed: $(command -v code) ($(code --version | head -n1))"
-  read -r -p "Reinstall/refresh anyway? [y/N] " ans
+  ans=""
+  if [[ -t 0 ]]; then
+    read -r -p "Reinstall/refresh anyway? [y/N] " ans
+  else
+    echo "[INFO] Not an interactive terminal (e.g. piped from curl/wget) -- skipping reinstall."
+  fi
   [[ "${ans,,}" == "y" ]] || { echo "Nothing to do."; exit 0; }
 fi
 
